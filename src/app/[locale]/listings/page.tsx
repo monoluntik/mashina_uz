@@ -1,3 +1,4 @@
+import React from "react";
 import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import Header from "@/components/Header";
@@ -215,25 +216,35 @@ export default async function ListingsPage({
 
                   {/* Pagination */}
                   {totalPages > 1 && (
-                    <div className="flex items-center justify-center gap-2 mt-8">
-                      {page > 1 && (
-                        <Link
-                          href={buildPageUrl(page - 1)}
-                          className="p-2 rounded-lg border border-gray-200 hover:border-blue-400 transition-colors"
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                        </Link>
-                      )}
-                      {Array.from({ length: totalPages }, (_, i) => i + 1)
-                        .filter(
+                    <div className="flex items-center justify-center gap-2 mt-8 flex-wrap">
+                      <Link
+                        href={buildPageUrl(page - 1)}
+                        aria-disabled={page <= 1}
+                        className={`p-2 rounded-lg border border-gray-200 transition-colors ${
+                          page <= 1
+                            ? "pointer-events-none opacity-40"
+                            : "hover:border-blue-400"
+                        }`}
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </Link>
+
+                      {(() => {
+                        const visible = Array.from({ length: totalPages }, (_, i) => i + 1).filter(
                           (p) => p === 1 || p === totalPages || Math.abs(p - page) <= 2
-                        )
-                        .map((p, idx, arr) => (
-                          <span key={p}>
-                            {idx > 0 && arr[idx - 1] !== p - 1 && (
-                              <span className="px-1 text-gray-400">...</span>
-                            )}
+                        );
+                        const items: React.ReactNode[] = [];
+                        visible.forEach((p, idx) => {
+                          if (idx > 0 && visible[idx - 1] !== p - 1) {
+                            items.push(
+                              <span key={`ellipsis-${p}`} className="w-9 h-9 flex items-center justify-center text-gray-400 text-sm select-none">
+                                …
+                              </span>
+                            );
+                          }
+                          items.push(
                             <Link
+                              key={p}
                               href={buildPageUrl(p)}
                               className={`w-9 h-9 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${
                                 p === page
@@ -243,16 +254,22 @@ export default async function ListingsPage({
                             >
                               {p}
                             </Link>
-                          </span>
-                        ))}
-                      {page < totalPages && (
-                        <Link
-                          href={buildPageUrl(page + 1)}
-                          className="p-2 rounded-lg border border-gray-200 hover:border-blue-400 transition-colors"
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </Link>
-                      )}
+                          );
+                        });
+                        return items;
+                      })()}
+
+                      <Link
+                        href={buildPageUrl(page + 1)}
+                        aria-disabled={page >= totalPages}
+                        className={`p-2 rounded-lg border border-gray-200 transition-colors ${
+                          page >= totalPages
+                            ? "pointer-events-none opacity-40"
+                            : "hover:border-blue-400"
+                        }`}
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </Link>
                     </div>
                   )}
                 </>
