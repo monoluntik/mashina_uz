@@ -1,36 +1,223 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mashina.uz
 
-## Getting Started
+Полнофункциональный маркетплейс для покупки и продажи автомобилей в Узбекистане. Аналог mashina.kg / freshauto.ru, адаптированный под местный рынок.
 
-First, run the development server:
+---
+
+## Стек
+
+| Слой | Технология |
+|---|---|
+| Фреймворк | Next.js 16 (App Router) |
+| База данных | SQLite + Prisma ORM |
+| Аутентификация | JWT (jsonwebtoken) + httpOnly cookie |
+| Хэширование паролей | bcryptjs |
+| Стили | Tailwind CSS |
+| Локализация | next-intl (ru / uz) |
+| Иконки | lucide-react |
+
+---
+
+## Запуск
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npx prisma generate
+npx prisma db push
+npx prisma db seed      # создаёт admin@mashina.uz / admin123 и тестовые объявления
+npm run dev             # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Функционал
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Публичная часть
 
-## Learn More
+#### Главная страница `/`
+- Hero-секция с поисковой формой (марка, город, год, цена)
+- Раздел последних объявлений с пагинацией
+- Раздел популярных марок
+- Блок преимуществ платформы
+- CTA-баннер для продавцов
 
-To learn more about Next.js, take a look at the following resources:
+#### Каталог `/listings`
+- Листинг активных объявлений (карточки с фото, ценой, городом, пробегом)
+- Фильтры: марка, модель, город, тип кузова, тип топлива, коробка передач, привод, состояние, год от/до, цена от/до, пробег от/до
+- Сортировка: дата (новые / старые), цена (дёшево / дорого), пробег
+- Пагинация
+- Бейдж возраста объявления («Сегодня» / «Вчера» / «X дн. назад»)
+- Значок «Проверено Mashina.uz» на верифицированных объявлениях
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+#### Страница объявления `/listings/[id]`
+- Галерея фотографий
+- Полные характеристики автомобиля
+- Контактные данные продавца
+- Кнопка «Добавить в избранное»
+- Кнопки «Поделиться» (Telegram, WhatsApp, скопировать ссылку)
+- Кредитный калькулятор (сумма, срок, ставка → ежемесячный платёж)
+- **Отчёт об осмотре** (если машина проходила проверку в салоне):
+  - Общая оценка в процентах
+  - Состояние 7 механических узлов (двигатель, КПП, подвеска, тормоза, электрика, салон, шины) — шкала 1–5
+  - Состояние 11 кузовных панелей — цветовые индикаторы
+  - Флаги «Участие в ДТП» и «Пробег подтверждён»
+  - Заметки инспектора и дата осмотра
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+#### Подать объявление `/sell`
+- Форма с тремя шагами: основное, характеристики, контакты
+- Для авторизованных пользователей: имя и телефон подставляются автоматически
+- После отправки объявление уходит на модерацию со статусом `pending`
 
-## Deploy on Vercel
+#### Избранное `/favorites`
+- Список сохранённых объявлений
+- Для гостей — хранится в localStorage
+- При входе в аккаунт — синхронизируется с базой данных
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+#### Салон (проверка автомобилей) `/inspection`
+- Описание услуги: что проверяется, этапы, стоимость
+- Форма заявки на осмотр (имя, телефон, марка/модель/год, сообщение)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+#### О нас `/about`
+- Статистика платформы, миссия, команда, преимущества
+
+#### Контакты `/contact`
+- Адрес, телефоны, email, кнопки Telegram / WhatsApp
+- Форма обратной связи
+
+---
+
+### Аккаунт пользователя
+
+#### Регистрация `/register`
+- По номеру телефона **или** по email
+- Валидация уникальности, хэширование пароля, JWT-кука `user_token` (30 дней)
+
+#### Вход `/login`
+- Вход по телефону или email + пароль
+- При входе: избранное из localStorage автоматически синхронизируется с базой
+
+#### Профиль `/profile`
+Четыре вкладки:
+
+| Вкладка | Содержимое |
+|---|---|
+| Мои объявления | Список собственных объявлений с отображением статуса (на модерации / активно / отклонено) |
+| Избранное | Карточки сохранённых объявлений, синхронизированные с БД |
+| История просмотров | Последние 20 просмотренных объявлений с датой |
+| Настройки | Редактирование имени, телефона, email; смена пароля |
+
+---
+
+### Административная панель `/admin`
+
+Доступ по роли: `admin` или `moderator`.
+
+#### Дашборд `/admin/dashboard`
+- Счётчики: всего объявлений, активных, на модерации, пользователей
+- Последние объявления и последние заявки на осмотр
+
+#### Объявления `/admin/listings`
+- Полный список с фильтром по статусу (`pending` / `active` / `rejected`)
+- Одобрить / Отклонить (с причиной)
+- Поставить / снять значок «Проверено»
+- Создать объявление от имени платформы (статус `active` сразу)
+- Удалить объявление
+
+#### Заявки на осмотр `/admin/inspections`
+- Список заявок с фильтрами по статусу (`new` / `scheduled` / `inspected` / `cancelled`)
+- Страница заявки: данные клиента, автомобиль, сообщение
+- Запланировать дату осмотра
+- Отменить заявку
+- Привязать заявку к существующему объявлению в каталоге
+- Заполнить отчёт об осмотре:
+  - Дата осмотра
+  - Оценки 7 механических узлов (1–5)
+  - Оценки 11 кузовных панелей (1–5)
+  - Флаги: участие в ДТП (+ описание), пробег подтверждён
+  - Примечания инспектора, имя инспектора
+  - При сохранении: объявление автоматически помечается как `isVerified: true` и переводится в статус `active`
+
+#### Модераторы `/admin/moderators` *(только admin)*
+- Список сотрудников (admin / moderator)
+- Создать нового модератора (email, пароль, имя, роль)
+- Удалить модератора (кроме себя)
+
+---
+
+## API
+
+### Публичные
+
+| Метод | Путь | Описание |
+|---|---|---|
+| GET | `/api/listings` | Список объявлений (фильтры, сортировка, пагинация) |
+| GET | `/api/listings/[id]` | Одно объявление |
+| POST | `/api/listings` | Подать объявление (→ `pending`) |
+| GET | `/api/listings/price-stats` | Статистика цен по марке/модели |
+| GET | `/api/listings/batch?ids=1,2,3` | Пакетное получение по ID |
+| POST | `/api/inspection-requests` | Подать заявку на осмотр |
+
+### Аутентификация пользователя
+
+| Метод | Путь | Описание |
+|---|---|---|
+| POST | `/api/auth/register` | Регистрация |
+| POST | `/api/auth/login` | Вход |
+| POST | `/api/auth/logout` | Выход |
+| GET | `/api/auth/me` | Текущий пользователь |
+| PATCH | `/api/auth/me` | Обновить профиль / сменить пароль |
+
+### Профиль пользователя *(требует авторизации)*
+
+| Метод | Путь | Описание |
+|---|---|---|
+| GET | `/api/user/listings` | Мои объявления |
+| GET/POST | `/api/user/favorites` | Получить / переключить избранное |
+| PUT | `/api/user/favorites` | Bulk-sync из localStorage |
+| GET/POST | `/api/user/history` | История просмотров |
+
+### Административные *(требует admin_token)*
+
+| Метод | Путь | Описание |
+|---|---|---|
+| POST | `/api/admin/login` | Вход в админку |
+| GET | `/api/admin/listings` | Все объявления + фильтры |
+| POST | `/api/admin/listings` | Создать объявление |
+| PATCH | `/api/admin/listings/[id]` | Обновить статус / isVerified |
+| DELETE | `/api/admin/listings/[id]` | Удалить |
+| GET | `/api/admin/inspection-requests` | Список заявок на осмотр |
+| PATCH | `/api/admin/inspection-requests/[id]` | Статус, дата |
+| POST | `/api/admin/inspection-reports` | Сохранить отчёт осмотра |
+| GET/POST/DELETE | `/api/admin/moderators` | Управление модераторами *(только admin)* |
+
+---
+
+## База данных
+
+```
+User              — покупатели и продавцы
+Listing           — объявления (userId FK, статус, isVerified)
+Favorite          — избранное (userId + listingId, unique)
+ViewHistory       — история просмотров (userId + listingId, upsert)
+AdminUser         — сотрудники платформы (роль: admin / moderator)
+InspectionRequest — заявки на живой осмотр
+InspectionReport  — результаты осмотра (1:1 с Listing)
+```
+
+---
+
+## Безопасность
+
+- Пароли хранятся в bcrypt (cost 12)
+- JWT в httpOnly-куках (не доступны из JS)
+- Два независимых auth-потока: `user_token` (30д) и `admin_token` (7д)
+- Pending / rejected объявления недоступны по публичным URL (404)
+- Все admin-API возвращают 401 без токена, 403 при недостаточной роли
+
+---
+
+## Локализация
+
+Два языка: **русский** (`/ru/...`) и **узбекский** (`/uz/...`).  
+Строки переводов в `messages/ru.json` и `messages/uz.json`.  
+Маршрут `/` автоматически редиректит на `/ru`.

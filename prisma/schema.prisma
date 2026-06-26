@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int           @id @default(autoincrement())
+  name        String
+  phone       String?       @unique
+  email       String?       @unique
+  password    String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  listings      Listing[]
+  favorites     Favorite[]
+  viewHistory   ViewHistory[]
+  resetTokens   PasswordResetToken[]
+}
+
+model Listing {
+  id               Int               @id @default(autoincrement())
+  title            String
+  brand            String
+  model            String
+  year             Int
+  price            Int
+  priceHistory     String            @default("[]")
+  mileage          Int
+  city             String
+  description      String
+  images           String
+  fuelType         String
+  transmission     String
+  color            String
+  bodyType         String
+  engineVolume     Float
+  driveType        String
+  condition        String            @default("used")
+  status           String            @default("pending")
+  isVerified       Boolean           @default(false)
+  adminNote        String?
+  sellerName       String
+  sellerPhone      String
+  isActive         Boolean           @default(true)
+  views            Int               @default(0)
+  expiresAt        DateTime?
+  userId           Int?
+  user             User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  inspectionReport InspectionReport?
+  favoritedBy      Favorite[]
+  viewedBy         ViewHistory[]
+  reports          ListingReport[]
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  listingId Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId])
+}
+
+model ViewHistory {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  listingId Int
+  viewedAt  DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId])
+}
+
+model AdminUser {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("moderator")
+  createdAt DateTime @default(now())
+}
+
+model InspectionRequest {
+  id          Int       @id @default(autoincrement())
+  name        String
+  phone       String
+  email       String?
+  carBrand    String
+  carModel    String
+  carYear     Int
+  message     String?
+  status      String    @default("new")
+  scheduledAt DateTime?
+  listingId   Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ListingReport {
+  id        Int      @id @default(autoincrement())
+  listingId Int
+  reason    String
+  details   String?
+  contact   String?
+  status    String   @default("new")
+  createdAt DateTime @default(now())
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+model InspectionReport {
+  id              Int      @id @default(autoincrement())
+  listingId       Int      @unique
+  listing         Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  engine          Int      @default(3)
+  transmission    Int      @default(3)
+  suspension      Int      @default(3)
+  brakes          Int      @default(3)
+  electrical      Int      @default(3)
+  interior        Int      @default(3)
+  tires           Int      @default(3)
+  bodyPanels      String   @default("{}")
+  hasAccident     Boolean  @default(false)
+  accidentDetails String?
+  mileageVerified Boolean  @default(true)
+  inspectorNotes  String   @default("")
+  inspectorName   String   @default("")
+  inspectedAt     DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
