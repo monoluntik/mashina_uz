@@ -6,11 +6,13 @@ import { useUser } from "@/components/UserProvider";
 import ListingCard from "@/components/ListingCard";
 import {
   User, ClipboardList, Heart, Clock, Settings,
-  Loader2, ShieldCheck, CheckCircle2, XCircle, Eye, Hourglass,
+  Loader2, ShieldCheck, CheckCircle2, XCircle, Eye, Hourglass, Search, Trash2,
 } from "lucide-react";
 import { Listing } from "@/types";
 
-type Tab = "listings" | "favorites" | "history" | "settings";
+type Tab = "listings" | "favorites" | "history" | "searches" | "settings";
+
+interface SavedSearch { id: number; name: string; filters: string; createdAt: string }
 
 const STATUS_MAP: Record<string, { ru: string; uz: string; icon: typeof CheckCircle2; color: string }> = {
   active:   { ru: "Активно",        uz: "Faol",             icon: CheckCircle2, color: "text-green-600" },
@@ -27,6 +29,7 @@ export default function ProfileClient({ locale, initialTab }: { locale: string; 
   const [myListings, setMyListings] = useState<(Listing & { status: string })[]>([]);
   const [favorites, setFavorites] = useState<Listing[]>([]);
   const [history, setHistory] = useState<Listing[]>([]);
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
   const [dataError, setDataError] = useState("");
 
@@ -63,6 +66,10 @@ export default function ProfileClient({ locale, initialTab }: { locale: string; 
           const r = await fetch("/api/user/history");
           if (!r.ok) throw new Error();
           setHistory(await r.json());
+        } else if (tab === "searches") {
+          const r = await fetch("/api/user/saved-searches");
+          if (!r.ok) throw new Error();
+          setSavedSearches(await r.json());
         }
       } catch {
         setDataError(isRu ? "Не удалось загрузить данные. Попробуйте обновить страницу." : "Ma'lumotlarni yuklab bo'lmadi. Sahifani yangilang.");
@@ -119,7 +126,8 @@ export default function ProfileClient({ locale, initialTab }: { locale: string; 
   const TABS = [
     { key: "listings" as Tab, icon: ClipboardList, label: isRu ? "Мои объявления" : "Mening e'lonlarim" },
     { key: "favorites" as Tab, icon: Heart, label: isRu ? "Избранное" : "Sevimlilar" },
-    { key: "history" as Tab, icon: Clock, label: isRu ? "История просмотров" : "Ko'rish tarixi" },
+    { key: "history" as Tab, icon: Clock, label: isRu ? "История" : "Tarix" },
+    { key: "searches" as Tab, icon: Search, label: isRu ? "Поиски" : "Qidiruvlar" },
     { key: "settings" as Tab, icon: Settings, label: isRu ? "Настройки" : "Sozlamalar" },
   ];
 
@@ -283,6 +291,58 @@ export default function ProfileClient({ locale, initialTab }: { locale: string; 
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {history.map((l) => <ListingCard key={l.id} listing={l} />)}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Saved Searches */}
+          {tab === "searches" && (
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-5">
+                {isRu ? "Сохранённые поиски" : "Saqlangan qidiruvlar"} ({savedSearches.length})
+              </h2>
+              {savedSearches.length === 0 ? (
+                <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
+                  <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 mb-2">{isRu ? "Нет сохранённых поисков" : "Saqlangan qidiruvlar yo'q"}</p>
+                  <p className="text-sm text-gray-400">{isRu ? "В каталоге настройте фильтры и нажмите «Сохранить поиск»" : "Katalogda filtrlarni sozlang va «Qidiruvni saqlash» tugmasini bosing"}</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {savedSearches.map((s) => {
+                    const params = new URLSearchParams(s.filters);
+                    const chips = Array.from(params.entries()).map(([k, v]) => `${v}`).filter(Boolean).slice(0, 5);
+                    return (
+                      <div key={s.id} className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-gray-900 mb-1">{s.name}</div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {chips.map((chip, i) => (
+                              <span key={i} className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{chip}</span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <a
+                            href={`/${locale}/listings?${s.filters}`}
+                            className="text-sm text-blue-600 font-medium hover:underline"
+                          >
+                            {isRu ? "Открыть" : "Ochish"}
+                          </a>
+                          <button
+                            onClick={async () => {
+                              await fetch("/api/user/saved-searches", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: s.id }) });
+                              setSavedSearches((prev) => prev.filter((x) => x.id !== s.id));
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

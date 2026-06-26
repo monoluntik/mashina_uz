@@ -156,6 +156,7 @@ export async function POST(request: NextRequest) {
       engineVolume,
       driveType: body.driveType,
       condition: body.condition || "used",
+      vin: body.vin ? String(body.vin).toUpperCase().slice(0, 17) : null,
       status: "pending",
       isVerified: false,
       sellerName: String(body.sellerName).slice(0, 100),

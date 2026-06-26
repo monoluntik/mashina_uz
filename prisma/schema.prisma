@@ -19,6 +19,7 @@ model User {
   favorites     Favorite[]
   viewHistory   ViewHistory[]
   resetTokens   PasswordResetToken[]
+  savedSearches SavedSearch[]
 }
 
 model Listing {
@@ -40,6 +41,7 @@ model Listing {
   engineVolume     Float
   driveType        String
   condition        String            @default("used")
+  vin              String?
   status           String            @default("pending")
   isVerified       Boolean           @default(false)
   adminNote        String?
@@ -78,6 +80,15 @@ model ViewHistory {
   listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
   @@unique([userId, listingId])
+}
+
+model SavedSearch {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  name      String
+  filters   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model AdminUser {

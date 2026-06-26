@@ -14,6 +14,7 @@ import {
   COLORS,
 } from "@/types";
 import { CheckCircle, Loader2, ImagePlus, X, AlertCircle } from "lucide-react";
+import { labelFuel, labelTransmission, labelBody, labelDrive, labelColor } from "@/lib/carLabels";
 
 const YEARS = Array.from({ length: 35 }, (_, i) => 2024 - i);
 const ENGINE_VOLUMES = ["1.0", "1.2", "1.4", "1.5", "1.6", "1.8", "2.0", "2.2", "2.4", "2.5", "3.0", "3.5", "4.0"];
@@ -47,6 +48,7 @@ export default function SellForm({ locale }: SellFormProps) {
     engineVolume: "",
     driveType: "",
     condition: "used",
+    vin: "",
     description: "",
     sellerName: "",
     sellerPhone: "",
@@ -272,9 +274,7 @@ export default function SellForm({ locale }: SellFormProps) {
             >
               <option value="">—</option>
               {BODY_TYPES.map((b) => (
-                <option key={b} value={b}>
-                  {b}
-                </option>
+                <option key={b} value={b}>{labelBody(b, locale)}</option>
               ))}
             </select>
           </div>
@@ -291,9 +291,7 @@ export default function SellForm({ locale }: SellFormProps) {
             >
               <option value="">—</option>
               {FUEL_TYPES.map((f) => (
-                <option key={f} value={f}>
-                  {f}
-                </option>
+                <option key={f} value={f}>{labelFuel(f, locale)}</option>
               ))}
             </select>
           </div>
@@ -310,9 +308,7 @@ export default function SellForm({ locale }: SellFormProps) {
             >
               <option value="">—</option>
               {TRANSMISSIONS.map((tr) => (
-                <option key={tr} value={tr}>
-                  {tr}
-                </option>
+                <option key={tr} value={tr}>{labelTransmission(tr, locale)}</option>
               ))}
             </select>
           </div>
@@ -329,9 +325,7 @@ export default function SellForm({ locale }: SellFormProps) {
             >
               <option value="">—</option>
               {COLORS.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
+                <option key={c} value={c}>{labelColor(c, locale)}</option>
               ))}
             </select>
           </div>
@@ -367,9 +361,7 @@ export default function SellForm({ locale }: SellFormProps) {
             >
               <option value="">—</option>
               {DRIVE_TYPES.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
+                <option key={d} value={d}>{labelDrive(d, locale)}</option>
               ))}
             </select>
           </div>
@@ -400,6 +392,25 @@ export default function SellForm({ locale }: SellFormProps) {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              VIN {locale === "ru" ? "(необязательно)" : "(ixtiyoriy)"}
+            </label>
+            <input
+              type="text"
+              value={form.vin}
+              onChange={(e) => set("vin", e.target.value.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, ""))}
+              maxLength={17}
+              placeholder="например: WBAJB9C51JB012345"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 font-mono uppercase focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {form.vin && form.vin.length > 0 && form.vin.length !== 17 && (
+              <p className="text-xs text-amber-600 mt-1">
+                {locale === "ru" ? `VIN должен быть 17 символов (сейчас: ${form.vin.length})` : `VIN 17 belgidan iborat bo'lishi kerak (hozir: ${form.vin.length})`}
+              </p>
+            )}
           </div>
 
           <div className="sm:col-span-2">

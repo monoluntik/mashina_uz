@@ -34,13 +34,19 @@ export default async function HomePage({
   const tHero = await getTranslations("hero");
   const tListing = await getTranslations("listing");
 
-  const recentListings = await prisma.listing.findMany({
-    where: { isActive: true, status: "active" },
-    orderBy: { createdAt: "desc" },
-    take: 8,
-  });
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  const totalListings = await prisma.listing.count({ where: { isActive: true, status: "active" } });
+  const [recentListings, totalListings, totalSellers, newToday] = await Promise.all([
+    prisma.listing.findMany({
+      where: { isActive: true, status: "active" },
+      orderBy: { createdAt: "desc" },
+      take: 8,
+    }),
+    prisma.listing.count({ where: { isActive: true, status: "active" } }),
+    prisma.user.count(),
+    prisma.listing.count({ where: { isActive: true, status: "active", createdAt: { gte: today } } }),
+  ]);
 
   const parsedListings: Listing[] = recentListings.map((l) => ({
     ...l,
@@ -54,12 +60,22 @@ export default async function HomePage({
       <Header />
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-blue-700 via-blue-600 to-blue-800 text-white py-16 px-4">
-          <div className="max-w-5xl mx-auto text-center">
+        <section className="relative bg-gradient-to-br from-blue-800 via-blue-600 to-indigo-700 text-white py-20 px-4 overflow-hidden">
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-10 left-1/4 w-72 h-72 bg-white rounded-full blur-3xl" />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-300 rounded-full blur-3xl" />
+          </div>
+          <div className="relative max-w-5xl mx-auto text-center">
+            {newToday > 0 && (
+              <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-4 py-1.5 text-sm font-medium mb-6">
+                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                {locale === "ru" ? `+${newToday} объявлений сегодня` : `Bugun +${newToday} ta e'lon`}
+              </div>
+            )}
             <h1 className="text-4xl sm:text-5xl font-bold mb-4 leading-tight">
               {tHero("title")}
             </h1>
-            <p className="text-blue-100 text-lg mb-10">
+            <p className="text-blue-100 text-lg mb-10 max-w-2xl mx-auto">
               {tHero("subtitle")}
             </p>
             <SearchForm />
@@ -69,26 +85,22 @@ export default async function HomePage({
         {/* Stats */}
         <section className="bg-white border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-4 py-6">
-            <div className="flex flex-wrap justify-center gap-8 text-center">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
               <div>
-                <div className="text-3xl font-bold text-blue-600">
-                  {totalListings.toLocaleString()}+
-                </div>
-                <div className="text-sm text-gray-500 mt-0.5">
-                  {t("stats.listings")}
-                </div>
+                <div className="text-3xl font-bold text-blue-600">{totalListings.toLocaleString()}+</div>
+                <div className="text-sm text-gray-500 mt-0.5">{t("stats.listings")}</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-blue-600">{totalSellers.toLocaleString()}+</div>
+                <div className="text-sm text-gray-500 mt-0.5">{locale === "ru" ? "Продавцов" : "Sotuvchilar"}</div>
               </div>
               <div>
                 <div className="text-3xl font-bold text-blue-600">25+</div>
-                <div className="text-sm text-gray-500 mt-0.5">
-                  {t("stats.brands")}
-                </div>
+                <div className="text-sm text-gray-500 mt-0.5">{t("stats.brands")}</div>
               </div>
               <div>
                 <div className="text-3xl font-bold text-blue-600">15</div>
-                <div className="text-sm text-gray-500 mt-0.5">
-                  {t("stats.cities")}
-                </div>
+                <div className="text-sm text-gray-500 mt-0.5">{t("stats.cities")}</div>
               </div>
             </div>
           </div>
@@ -110,8 +122,8 @@ export default async function HomePage({
 
           {parsedListings.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {parsedListings.map((listing) => (
-                <ListingCard key={listing.id} listing={listing} />
+              {parsedListings.map((listing, i) => (
+                <ListingCard key={listing.id} listing={listing} priority={i < 4} />
               ))}
             </div>
           ) : (

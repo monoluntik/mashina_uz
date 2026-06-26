@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import ListingCard from "@/components/ListingCard";
 import FiltersPanel from "@/components/FiltersPanel";
 import MobileFiltersDrawer from "@/components/MobileFiltersDrawer";
+import SaveSearchButton from "@/components/SaveSearchButton";
 import { Listing } from "@/types";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -173,6 +174,12 @@ export default async function ListingsPage({
 
                 <div className="flex items-center gap-2 flex-wrap">
                   <MobileFiltersDrawer currentFilters={sp} locale={locale} activeCount={activeFilterCount} />
+                  {activeFilterCount > 0 && (
+                    <SaveSearchButton
+                      filters={new URLSearchParams(Object.fromEntries(Object.entries(sp).filter(([,v]) => v)) as Record<string, string>).toString()}
+                      locale={locale}
+                    />
+                  )}
 
                 {/* Sort */}
                 <div className="flex items-center gap-2">

@@ -47,6 +47,7 @@ import CompareButtonClient from "@/components/CompareButton";
 import ReportModal from "@/components/ReportModal";
 import { Listing } from "@/types";
 import { labelFuel, labelTransmission, labelBody, labelDrive, labelColor } from "@/lib/carLabels";
+import PriceSparkline from "@/components/PriceSparkline";
 import {
   ShieldCheck,
   MapPin,
@@ -388,19 +389,7 @@ export default async function ListingDetailPage({
                 <div className="text-3xl font-bold text-blue-600 mt-3">
                   {listing.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")} {t("sum")}
                 </div>
-                {(() => {
-                  const ph = JSON.parse((raw as { priceHistory?: string }).priceHistory || "[]") as { price: number; date: string }[];
-                  if (ph.length === 0) return null;
-                  const oldest = ph[0];
-                  const diff = oldest.price - listing.price;
-                  if (diff <= 0) return null;
-                  const pct = Math.round((diff / oldest.price) * 100);
-                  return (
-                    <div className="inline-flex items-center gap-1.5 mt-1 bg-green-50 text-green-700 text-xs font-medium px-2.5 py-1 rounded-full">
-                      ↓ {locale === "ru" ? `Цена снижена на ${pct}%` : `Narx ${pct}% pastladi`}
-                    </div>
-                  );
-                })()}
+                <PriceSparkline priceHistory={(raw as { priceHistory?: string }).priceHistory || "[]"} locale={locale} />
                 <div className="flex items-center gap-1.5 text-sm text-gray-500 mt-2">
                   <MapPin className="w-4 h-4" />
                   {listing.city}
@@ -485,6 +474,16 @@ export default async function ListingDetailPage({
                   </span>
                 </span>
               </div>
+
+              {/* VIN */}
+              {(raw as { vin?: string }).vin && (
+                <div className="bg-white rounded-xl border border-gray-200 p-4">
+                  <div className="text-xs text-gray-500 mb-1">VIN</div>
+                  <div className="font-mono text-sm text-gray-800 tracking-widest select-all">
+                    {(raw as { vin?: string }).vin}
+                  </div>
+                </div>
+              )}
 
               {/* Share + Compare buttons */}
               <ShareButtonsClient
