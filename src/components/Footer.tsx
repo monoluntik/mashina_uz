@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { Car, Phone, Mail, MessageCircle } from "lucide-react";
+import { Car, Mail } from "lucide-react";
 
 export default function Footer() {
   const t = useTranslations("footer");
@@ -23,16 +23,10 @@ export default function Footer() {
             <p className="text-gray-400 text-sm mb-4">{t("tagline")}</p>
             <div className="space-y-1.5">
               <div className="flex items-center gap-2 text-sm text-gray-400">
-                <Phone className="w-4 h-4" />
-                <span>+998 71 200 00 00</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-400">
                 <Mail className="w-4 h-4" />
-                <span>info@mashina.uz</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-400">
-                <MessageCircle className="w-4 h-4" />
-                <a href="https://t.me/mashinauz" className="hover:text-white transition-colors">Telegram</a>
+                <a href="mailto:narbkv07@gmail.com" className="hover:text-white transition-colors">
+                  narbkv07@gmail.com
+                </a>
               </div>
             </div>
           </div>
