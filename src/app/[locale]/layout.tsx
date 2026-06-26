@@ -6,6 +6,7 @@ import { UserProvider } from "@/components/UserProvider";
 import CookieBanner from "@/components/CookieBanner";
 import CompareBar from "@/components/CompareBar";
 import Toaster from "@/components/Toaster";
+import ScrollToTop from "@/components/ScrollToTop";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import "../globals.css";
@@ -55,6 +56,7 @@ export default async function LocaleLayout({
             <CompareBar />
             <CookieBanner />
             <Toaster />
+            <ScrollToTop />
           </UserProvider>
         </NextIntlClientProvider>
       </body>

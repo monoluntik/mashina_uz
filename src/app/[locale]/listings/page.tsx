@@ -7,6 +7,7 @@ import ListingCard from "@/components/ListingCard";
 import FiltersPanel from "@/components/FiltersPanel";
 import MobileFiltersDrawer from "@/components/MobileFiltersDrawer";
 import SaveSearchButton from "@/components/SaveSearchButton";
+import QuickFilters from "@/components/QuickFilters";
 import { Listing } from "@/types";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -161,6 +162,11 @@ export default async function ListingsPage({
 
             {/* Results */}
             <div className="flex-1 min-w-0">
+              {/* Quick filters */}
+              <div className="mb-4">
+                <QuickFilters locale={locale} currentFilters={sp} />
+              </div>
+
               {/* Header bar */}
               <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
                 <div>

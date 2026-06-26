@@ -7,6 +7,7 @@ import { Listing } from "@/types";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useComparison } from "@/hooks/useComparison";
 import { labelFuel, labelTransmission } from "@/lib/carLabels";
+import { fmtPrice, fmtNum } from "@/lib/format";
 
 interface ListingCardProps {
   listing: Listing;
@@ -41,7 +42,7 @@ export default function ListingCard({ listing, priceBadge, priority }: ListingCa
     listing.images[0] ||
     `https://placehold.co/400x280/e2e8f0/64748b?text=${encodeURIComponent(listing.brand + " " + listing.model)}`;
 
-  const fmt = (n: number) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  const fmt = fmtNum;
   const badge = priceBadge ? BADGE_CONFIG[priceBadge] : null;
   const ageBadge = getAgeBadge(listing.createdAt, locale);
 
@@ -102,9 +103,9 @@ export default function ListingCard({ listing, priceBadge, priority }: ListingCa
             {listing.title}
           </h3>
 
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
             <span className="text-xl font-bold text-blue-600">
-              {fmt(listing.price)} {t("sum")}
+              {fmtPrice(listing.price, locale)} {t("sum")}
             </span>
             {badge && (
               <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${badge.cls}`}>
