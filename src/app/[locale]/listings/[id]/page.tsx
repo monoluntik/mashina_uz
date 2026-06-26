@@ -46,6 +46,7 @@ import ShareButtonsClient from "@/components/ShareButtons";
 import CompareButtonClient from "@/components/CompareButton";
 import ReportModal from "@/components/ReportModal";
 import { Listing } from "@/types";
+import { labelFuel, labelTransmission, labelBody, labelDrive, labelColor } from "@/lib/carLabels";
 import {
   ShieldCheck,
   MapPin,
@@ -281,16 +282,16 @@ export default async function ListingDetailPage({
       label: t("mileage"),
       value: `${listing.mileage.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")} ${t("km")}`,
     },
-    { icon: Fuel, label: t("fuel"), value: listing.fuelType },
-    { icon: Settings, label: t("transmission"), value: listing.transmission },
-    { icon: Palette, label: t("color"), value: listing.color },
-    { icon: Car, label: t("body"), value: listing.bodyType },
+    { icon: Fuel, label: t("fuel"), value: labelFuel(listing.fuelType, locale) },
+    { icon: Settings, label: t("transmission"), value: labelTransmission(listing.transmission, locale) },
+    { icon: Palette, label: t("color"), value: labelColor(listing.color, locale) },
+    { icon: Car, label: t("body"), value: labelBody(listing.bodyType, locale) },
     {
       icon: Zap,
       label: t("engine"),
       value: `${listing.engineVolume} ${t("liters")}`,
     },
-    { icon: Car, label: t("drive"), value: listing.driveType },
+    { icon: Car, label: t("drive"), value: labelDrive(listing.driveType, locale) },
   ];
 
   const dateStr = new Date(listing.createdAt).toLocaleDateString(

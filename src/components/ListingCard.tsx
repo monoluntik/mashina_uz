@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { MapPin, Gauge, Calendar, Fuel, Heart, ShieldCheck } from "lucide-react";
 import { Listing } from "@/types";
 import { useFavorites } from "@/hooks/useFavorites";
+import { labelFuel } from "@/lib/carLabels";
 
 interface ListingCardProps {
   listing: Listing;
@@ -115,7 +116,7 @@ export default function ListingCard({ listing, priceBadge }: ListingCardProps) {
             </div>
             <div className="flex items-center gap-1.5">
               <Fuel className="w-3.5 h-3.5 flex-shrink-0" />
-              <span>{listing.fuelType}</span>
+              <span>{labelFuel(listing.fuelType, locale)}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 flex-shrink-0" />

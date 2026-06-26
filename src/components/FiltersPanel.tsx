@@ -12,6 +12,7 @@ import {
   DRIVE_TYPES,
   COLORS,
 } from "@/types";
+import { labelFuel, labelTransmission, labelBody, labelDrive, labelColor } from "@/lib/carLabels";
 
 interface FiltersPanelProps {
   currentFilters: Record<string, string | undefined>;
@@ -24,14 +25,15 @@ const YEARS = Array.from({ length: 35 }, (_, i) => 2025 - i);
 const ENGINE_VOLUMES = ["1.0", "1.2", "1.4", "1.5", "1.6", "1.8", "2.0", "2.4", "2.5", "3.0", "3.5", "4.0", "5.0", "6.0+"];
 
 const MILEAGE_STEPS = [
-  { value: "10000",  label: "до 10 000 км" },
-  { value: "30000",  label: "до 30 000 км" },
-  { value: "50000",  label: "до 50 000 км" },
-  { value: "100000", label: "до 100 000 км" },
-  { value: "150000", label: "до 150 000 км" },
-  { value: "200000", label: "до 200 000 км" },
-  { value: "300000", label: "до 300 000 км" },
+  { value: "10000",  ru: "до 10 000 км",  uz: "10 000 kmgacha" },
+  { value: "30000",  ru: "до 30 000 км",  uz: "30 000 kmgacha" },
+  { value: "50000",  ru: "до 50 000 км",  uz: "50 000 kmgacha" },
+  { value: "100000", ru: "до 100 000 км", uz: "100 000 kmgacha" },
+  { value: "150000", ru: "до 150 000 км", uz: "150 000 kmgacha" },
+  { value: "200000", ru: "до 200 000 км", uz: "200 000 kmgacha" },
+  { value: "300000", ru: "до 300 000 км", uz: "300 000 kmgacha" },
 ];
+
 
 const isRu = (locale: string) => locale === "ru";
 
@@ -219,7 +221,7 @@ export default function FiltersPanel({ currentFilters, locale, onApply }: Filter
           />
           <Select value={f.mileageTo} onChange={set("mileageTo")}>
             <option value="">{ru ? "до" : "gacha"}</option>
-            {MILEAGE_STEPS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+            {MILEAGE_STEPS.map((m) => <option key={m.value} value={m.value}>{ru ? m.ru : m.uz}</option>)}
           </Select>
         </div>
       </div>
@@ -238,7 +240,7 @@ export default function FiltersPanel({ currentFilters, locale, onApply }: Filter
         <Label>{ru ? "Тип кузова" : "Kuzov turi"}</Label>
         <Select value={f.bodyType} onChange={set("bodyType")}>
           <option value="">—</option>
-          {BODY_TYPES.map((b) => <option key={b} value={b}>{b}</option>)}
+          {BODY_TYPES.map((b) => <option key={b} value={b}>{labelBody(b, locale)}</option>)}
         </Select>
       </div>
 
@@ -247,7 +249,7 @@ export default function FiltersPanel({ currentFilters, locale, onApply }: Filter
         <Label>{ru ? "Тип топлива" : "Yoqilg'i turi"}</Label>
         <Select value={f.fuelType} onChange={set("fuelType")}>
           <option value="">—</option>
-          {FUEL_TYPES.map((ft) => <option key={ft} value={ft}>{ft}</option>)}
+          {FUEL_TYPES.map((ft) => <option key={ft} value={ft}>{labelFuel(ft, locale)}</option>)}
         </Select>
       </div>
 
@@ -256,13 +258,13 @@ export default function FiltersPanel({ currentFilters, locale, onApply }: Filter
         <Label>{ru ? "Коробка передач" : "Uzatmalar qutisi"}</Label>
         <Select value={f.transmission} onChange={set("transmission")}>
           <option value="">—</option>
-          {TRANSMISSIONS.map((tr) => <option key={tr} value={tr}>{tr}</option>)}
+          {TRANSMISSIONS.map((tr) => <option key={tr} value={tr}>{labelTransmission(tr, locale)}</option>)}
         </Select>
       </div>
 
       {/* Drive type */}
       <div>
-        <Label>{ru ? "Привод" : "Yetkazib berish"}</Label>
+        <Label>{ru ? "Привод" : "Yurish turi"}</Label>
         <div className="flex gap-2 flex-wrap">
           {(["", ...DRIVE_TYPES] as string[]).map((d) => (
             <button
@@ -274,7 +276,7 @@ export default function FiltersPanel({ currentFilters, locale, onApply }: Filter
                   : "border-gray-200 text-gray-600 hover:border-blue-400"
               }`}
             >
-              {d === "" ? (ru ? "Любой" : "Har qanday") : d === "Old" ? (ru ? "Передний" : "Old") : d === "Orqa" ? (ru ? "Задний" : "Orqa") : ru ? "Полный" : "4x4"}
+              {d === "" ? (ru ? "Любой" : "Har qanday") : labelDrive(d, locale)}
             </button>
           ))}
         </div>
@@ -300,17 +302,11 @@ export default function FiltersPanel({ currentFilters, locale, onApply }: Filter
         <Label>{ru ? "Цвет" : "Rang"}</Label>
         <div className="flex flex-wrap gap-1.5">
           {(["", ...COLORS] as string[]).map((c) => {
-            const COLOR_MAP: Record<string, string> = {
+            const COLOR_HEX: Record<string, string> = {
               "Oq": "#ffffff", "Qora": "#1a1a1a", "Kumush": "#c0c0c0",
               "Kulrang": "#808080", "Qizil": "#dc2626", "Ko'k": "#2563eb",
               "Yashil": "#16a34a", "Sariq": "#ca8a04", "To'q sariq": "#ea580c",
               "Jigarrang": "#92400e",
-            };
-            const COLOR_RU: Record<string, string> = {
-              "Oq": "Белый", "Qora": "Чёрный", "Kumush": "Серебристый",
-              "Kulrang": "Серый", "Qizil": "Красный", "Ko'k": "Синий",
-              "Yashil": "Зелёный", "Sariq": "Жёлтый", "To'q sariq": "Оранжевый",
-              "Jigarrang": "Коричневый",
             };
             if (c === "") {
               return (
@@ -328,20 +324,18 @@ export default function FiltersPanel({ currentFilters, locale, onApply }: Filter
             return (
               <button
                 key={c}
-                title={ru ? COLOR_RU[c] || c : c}
+                title={labelColor(c, locale)}
                 onClick={() => set("color")(c)}
                 className={`w-7 h-7 rounded-full border-2 transition-all ${
                   f.color === c ? "border-blue-600 scale-110 shadow-md" : "border-gray-200 hover:border-gray-400"
                 } ${c === "Oq" ? "shadow-inner" : ""}`}
-                style={{ backgroundColor: COLOR_MAP[c] || "#cccccc" }}
+                style={{ backgroundColor: COLOR_HEX[c] || "#cccccc" }}
               />
             );
           })}
         </div>
         {f.color && (
-          <p className="text-xs text-gray-500 mt-1">
-            {ru ? ({"Oq":"Белый","Qora":"Чёрный","Kumush":"Серебристый","Kulrang":"Серый","Qizil":"Красный","Ko'k":"Синий","Yashil":"Зелёный","Sariq":"Жёлтый","To'q sariq":"Оранжевый","Jigarrang":"Коричневый"}[f.color] || f.color) : f.color}
-          </p>
+          <p className="text-xs text-gray-500 mt-1">{labelColor(f.color, locale)}</p>
         )}
       </div>
 
