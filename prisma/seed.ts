@@ -9,12 +9,13 @@ const rnd   = (min: number, max: number) => Math.floor(Math.random() * (max - mi
 const pick  = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 const maybe = (prob: number) => Math.random() < prob;
 
-function carImages(brand: string, model: string, idx: number): string {
-  const slug = `${brand}-${model}`.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-  const count = 2 + (idx % 3); // 2, 3, or 4 images per listing
+// loremflickr.com serves real Flickr photos by keyword; lock= makes it deterministic
+function carImages(brand: string, idx: number): string {
+  const kw = brand.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const count = 2 + (idx % 3); // 2, 3, or 4 images
   return JSON.stringify(
     Array.from({ length: count }, (_, i) =>
-      `https://picsum.photos/seed/${slug}-${idx}-${i}/800/600`
+      `https://loremflickr.com/800/600/automobile,${kw}?lock=${idx * 10 + i + 1}`
     )
   );
 }
@@ -22,14 +23,25 @@ function carImages(brand: string, model: string, idx: number): string {
 // ─── data tables ─────────────────────────────────────────────────────────────
 
 const CITIES = [
-  "Toshkent", "Samarqand", "Namangan", "Andijon", "Farg'ona",
-  "Qarshi",   "Buxoro",    "Nukus",    "Termiz",  "Jizzax",
-  "Urganch",  "Qo'qon",    "Navoiy",   "Guliston","Chirchiq",
+  "Toshkent", "Toshkent", "Toshkent", "Toshkent", // 4x weight — capital dominates
+  "Samarqand", "Namangan", "Andijon", "Farg'ona",
+  "Qarshi",   "Buxoro",    "Nukus",    "Termiz",
+  "Jizzax",   "Urganch",  "Qo'qon",  "Navoiy",
+  "Guliston", "Chirchiq",
 ];
 
-const COLORS = ["Oq","Qora","Kumush","Kulrang","Qizil","Ko'k","Yashil","Sariq","To'q sariq","Jigarrang"];
-const TRANSMISSIONS = ["Mexanik","Avtomat","Robot","Variator"];
-const FUEL_TYPES    = ["Benzin","Dizel","Gaz","Elektr","Gibrid"];
+const COLORS = [
+  "Oq","Oq","Oq",        // white is most popular
+  "Kumush","Kumush",      // silver
+  "Qora","Qora",          // black
+  "Kulrang",              // grey
+  "Qizil",               // red
+  "Ko'k",                // blue
+  "Yashil",              // green
+  "Sariq",               // yellow
+  "To'q sariq",          // orange
+  "Jigarrang",           // brown
+];
 
 const SELLER_NAMES = [
   "Akbar Toshmatov","Dilnoza Yusupova","Jasur Rahimov","Nodir Karimov","Sarvar Mirzaev",
@@ -167,32 +179,65 @@ const CARS: {
   { brand:"Lexus",     model:"LX",        basePrice:1_300_000_000,bodyType:"SUV",     engines:[4.7,5.7],       drive:["4x4"],        fuels:["Benzin"],            txs:["Avtomat"],           yearRange:[2010,2022], priceVar:0.2  },
   { brand:"Lexus",     model:"GX",        basePrice:880_000_000, bodyType:"SUV",      engines:[4.0,4.6],       drive:["4x4"],        fuels:["Benzin"],            txs:["Avtomat"],           yearRange:[2010,2022], priceVar:0.2  },
 
-  // Porsche / Jaguar / Range Rover (luxury)
+  // Land Rover
   { brand:"Land Rover",model:"Range Rover",basePrice:1_800_000_000,bodyType:"SUV",    engines:[3.0,4.4,5.0],   drive:["4x4"],        fuels:["Benzin","Dizel"],    txs:["Avtomat"],           yearRange:[2013,2022], priceVar:0.2  },
   { brand:"Land Rover",model:"Discovery", basePrice:900_000_000, bodyType:"SUV",      engines:[2.0,3.0],       drive:["4x4"],        fuels:["Benzin","Dizel"],    txs:["Avtomat"],           yearRange:[2015,2022], priceVar:0.2  },
 ];
 
 // ─── description templates ────────────────────────────────────────────────────
 
-const DESC_TEMPLATES_RU = [
-  (b: string, m: string, y: number) => `${b} ${m} ${y} года выпуска. Машина в отличном состоянии, один владелец. Все техническое обслуживание пройдено вовремя. Торг уместен.`,
-  (b: string, m: string, y: number) => `Продаётся ${b} ${m} ${y} г. Состояние хорошее, не битая, не крашеная. Срочная продажа в связи с переездом.`,
-  (b: string, m: string, y: number) => `${b} ${m} ${y}. Куплена в салоне, все документы в наличии. Регулярное ТО у официального дилера.`,
-  (b: string, m: string, y: number) => `Продаю ${b} ${m} ${y} года. Машина на ходу, салон в хорошем состоянии. Без ДТП. Возможен торг при осмотре.`,
-  (b: string, m: string, y: number) => `${b} ${m} ${y}. Полный привод, отличная проходимость. Зимой и летом не подведёт. Звоните, не пожалеете.`,
-  (b: string, m: string, y: number) => `Продаю своего любимца ${b} ${m}. Год: ${y}. Очень аккуратный хозяин, в гараже хранилась. Свежий техосмотр.`,
-  (b: string, m: string, y: number) => `${b} ${m} ${y} г/в. Полный комплект: кожаный салон, камера заднего вида, парктроник. Не требует вложений.`,
-  (b: string, m: string, y: number) => `Автомобиль ${b} ${m} ${y} в идеальном состоянии. Сигнализация, тонировка. Резина летняя и зимняя в комплекте.`,
-  (b: string, m: string, y: number) => `${b} ${m} ${y}. Двигатель работает как часы, масло менял регулярно. Кузов без вмятин. Продаю в связи с покупкой нового авто.`,
-  (b: string, m: string, y: number) => `Хороший вариант — ${b} ${m} ${y}. Ухоженный, не гнилой. Пробег реальный, можно проверить у дилера.`,
+const DESC_TEMPLATES: ((b: string, m: string, y: number) => string)[] = [
+  (b,m,y) => `${b} ${m} ${y} года выпуска. Машина в отличном состоянии, один хозяин. Всё техническое обслуживание пройдено вовремя по регламенту. Не бита, не крашена. Торг уместен при встрече.`,
+  (b,m,y) => `Продаётся ${b} ${m} ${y} г. Состояние хорошее, ухоженная. Кузов без вмятин и царапин, салон чистый. Срочная продажа — переезд. Торг при осмотре.`,
+  (b,m,y) => `${b} ${m} ${y}. Куплена в официальном салоне, все документы оригинальные. ТО только у дилера. Полный привод, отличная управляемость в городе и на трассе. Не торгуюсь по звонку.`,
+  (b,m,y) => `Продаю ${b} ${m} ${y} года. Автомобиль на ходу, двигатель работает ровно, без стуков и дыма. Кожаный салон, подогрев сидений, камера заднего вида. Без ДТП.`,
+  (b,m,y) => `${b} ${m} ${y}. Полный фарш: панорамная крыша, климат-контроль, парктроники спереди и сзади, камера 360°, подогрев руля. Состояние — 9 из 10. Серьёзным покупателям скидка.`,
+  (b,m,y) => `Продаю своего любимца ${b} ${m} ${y} г. Аккуратный хозяин, хранился в гараже. Свежий техосмотр. Зимняя и летняя резина в комплекте. Цена окончательная.`,
+  (b,m,y) => `${b} ${m} ${y} г/в. Машина в хорошем состоянии: двигатель тянет хорошо, тормоза в норме, подвеска не гремит. Вложений не требует. Готова к долгой эксплуатации.`,
+  (b,m,y) => `Автомобиль ${b} ${m} ${y} — отличный вариант для семьи. Просторный салон, большой багажник. Сигнализация с автозапуском, тонировка. Пробег реальный, не скрученный.`,
+  (b,m,y) => `${b} ${m} ${y}. Двигатель работает как часы — масло менял по регламенту каждые 7–8 тыс. км. Кузов ровный, без коррозии. Продаю в связи с покупкой нового авто.`,
+  (b,m,y) => `Хороший вариант — ${b} ${m} ${y}. Ухоженный, не гнилой, без скрытых дефектов. Пробег подтверждён сервисной книжкой. Показываю в любое удобное время.`,
+  (b,m,y) => `${b} ${m} ${y} года. Второй хозяин. Взял с пробегом 45 000 км, доехал до ${Math.round(45 + (2025-y)*12)} тыс. Ни разу не попадал в ДТП. Обслуживание в фирменном сервисе. Продаю честно.`,
+  (b,m,y) => `Срочно продаю ${b} ${m} ${y} — нужны деньги на другой проект. Цена ниже рынка. Машина отличная: ничего не стучит, не течёт, климатик дует хорошо. Осмотр в любое время.`,
+  (b,m,y) => `${b} ${m} ${y}. Брали как семейный автомобиль — возим детей, ездим на дачу. Всё исправно: ходовая, тормоза, подвеска. Летняя и зимняя резина. Отдам в хорошие руки.`,
+  (b,m,y) => `Продаётся ${b} ${m} ${y} г. Богатая комплектация: велюровый салон, навигация, мультируль, круиз-контроль. Масло и фильтры менял 3 месяца назад. Готов к торгу.`,
+  (b,m,y) => `${b} ${m} ${y}, один хозяин с нового. Никогда не красился — проверяйте толщиномером. Все четыре диска родные, ни одного вмятка. Документы в порядке, чистая история.`,
+  (b,m,y) => `${b} ${m} ${y}. Приобретался для деловых поездок. Пробег в основном трасса — двигатель не уставший. Кожаный салон в отличном состоянии. Реальным покупателям — скидка.`,
+  (b,m,y) => `Продаю ${b} ${m} ${y}. Машина ухоженная: мойка раз в неделю, антикор делал каждый год. Зимой не эксплуатировал — стояла в тёплом гараже. Цена честная, торг 3–5%.`,
+  (b,m,y) => `${b} ${m} ${y} — надёжный, экономичный. Расход по городу ${Math.round(7 + Math.random()*3)} л/100 км, по трассе ещё меньше. Без нареканий за всё время владения. Продаю только потому что взял новый.`,
+  (b,m,y) => `${b} ${m} ${y}. Не курили в машине, животных не перевозили. Салон как новый. Подогрев передних и задних сидений, электропривод зеркал, электростёкла. Всё работает.`,
+  (b,m,y) => `Продаётся ${b} ${m} ${y} года. Несрочно, цену не сбрасываю — знаю сколько стоит. Машина честная, можно проверить у любого мастера. Выезд на осмотр бесплатно.`,
 ];
+
+// ─── inspection helpers ───────────────────────────────────────────────────────
+
+const INSPECTOR_NAMES = [
+  "Акбар Усмонов","Дониёр Маматов","Умид Рашидов","Фаррух Холиқов","Санжар Мусаев",
+];
+
+function randInspectionScore(): number {
+  // Weighted: mostly 3-5
+  const scores = [3,3,4,4,4,5,5];
+  return pick(scores);
+}
+
+function inspectorNotes(b: string, m: string): string {
+  const notes = [
+    `${b} ${m} в хорошем техническом состоянии. Следов ДТП не обнаружено. ЛКП оригинальное на всех панелях. Рекомендуется замена воздушного фильтра.`,
+    `Автомобиль прошёл полную диагностику. Двигатель и коробка передач в норме. Незначительный износ тормозных колодок — рекомендуется замена в ближайшие 10 000 км.`,
+    `Кузов ровный, окрас равномерный. Подвеска в удовлетворительном состоянии, люфтов нет. Масло чистое, уровень в норме. Авто готово к эксплуатации.`,
+    `Проверка показала хорошее общее состояние. Небольшие царапины на переднем бампере — кузов не красился. Подкрыльники целые. Рекомендуем к покупке.`,
+    `Все системы исправны. Аккумулятор новый (менялся 6 месяцев назад). Шины в норме, протектор 6–7 мм. Документы и VIN совпадают.`,
+  ];
+  return pick(notes);
+}
 
 // ─── seed ─────────────────────────────────────────────────────────────────────
 
 async function main() {
   console.log("Seeding database...");
 
-  // Keep admin users if they exist, otherwise recreate
+  // ── 1. Ensure admin users ──────────────────────────────────────────────────
   const adminExists = await prisma.adminUser.findFirst({ where: { email: "admin@mashina.uz" } });
   if (!adminExists) {
     const adminPassword = await bcrypt.hash("admin123", 12);
@@ -200,20 +245,28 @@ async function main() {
     await prisma.adminUser.create({ data: { email: "admin@mashina.uz", password: adminPassword, name: "Главный администратор", role: "admin" } });
     await prisma.adminUser.create({ data: { email: "mod@mashina.uz",   password: modPassword,   name: "Модератор",             role: "moderator" } });
     console.log("Created admin users.");
+  } else {
+    console.log("Admin users already exist — skipping.");
   }
 
-  // Clear only listings (keep users & admin)
+  // ── 2. Full wipe (keep only AdminUser) ────────────────────────────────────
+  console.log("Clearing old data...");
+  await prisma.inspectionReport.deleteMany();
   await prisma.listingReport.deleteMany();
   await prisma.viewHistory.deleteMany();
   await prisma.favorite.deleteMany();
+  await prisma.savedSearch.deleteMany();
+  await prisma.passwordResetToken.deleteMany();
+  await prisma.inspectionRequest.deleteMany();
   await prisma.listing.deleteMany();
+  await prisma.user.deleteMany();
+  console.log("Done.");
 
+  // ── 3. Create listings ────────────────────────────────────────────────────
   const TARGET = 800;
   let created = 0;
 
-  // Distribute across car models proportionally
   const weights = CARS.map((c) => {
-    // Chevrolet and popular budget brands get more listings
     if (["Chevrolet","Daewoo","Ravon","Lada"].includes(c.brand)) return 3;
     if (["Toyota","Hyundai","Kia","Nissan"].includes(c.brand))   return 2;
     return 1;
@@ -223,7 +276,6 @@ async function main() {
   const batch: Parameters<typeof prisma.listing.create>[0]["data"][] = [];
 
   while (created < TARGET) {
-    // Pick weighted random car
     let rand = Math.random() * totalWeight;
     let carIdx = 0;
     for (let i = 0; i < weights.length; i++) {
@@ -238,36 +290,37 @@ async function main() {
     const variance = 1 + (Math.random() * 2 - 1) * car.priceVar;
     const price = Math.min(2_000_000_000, Math.round(car.basePrice * yearFactor * variance / 1_000_000) * 1_000_000);
 
-    // Mileage: newer car = less km, condition affects it
     const age = 2025 - year;
     const baseMileage = age * rnd(8000, 20000);
-    const mileage = maybe(0.1) ? rnd(0, 5000)            // "almost new"
-                  : maybe(0.15) ? rnd(200000, 400000)    // high mileage
+    const mileage = maybe(0.1) ? rnd(0, 5000)
+                  : maybe(0.15) ? rnd(200000, 400000)
                   : Math.max(0, baseMileage + rnd(-15000, 15000));
     const mileageRounded = Math.round(mileage / 1000) * 1000;
 
-    const condition = year >= 2024 ? "new" : maybe(0.08) ? "new" : "used";
-    const engine    = pick(car.engines);
-    const drive     = pick(car.drive);
-    const fuel      = engine === 0.0 ? "Elektr" : (car.fuels.includes("Gaz") && maybe(0.35)) ? "Gaz" : pick(car.fuels.filter(f => f !== "Gaz" || car.fuels.length === 1));
-    const tx        = pick(car.txs);
-    const color     = pick(COLORS);
-    const city      = pick(CITIES);
-    const seller    = pick(SELLER_NAMES);
-    const phone     = `+998 ${pick(["90","91","93","94","95","97","98","99"])} ${rnd(100,999)} ${rnd(10,99)} ${rnd(10,99)}`;
+    const condition  = year >= 2024 ? "new" : maybe(0.08) ? "new" : "used";
+    const engine     = pick(car.engines);
+    const drive      = pick(car.drive);
+    const fuel       = engine === 0.0 ? "Elektr"
+                     : (car.fuels.includes("Gaz") && maybe(0.35)) ? "Gaz"
+                     : pick(car.fuels.filter(f => f !== "Gaz" || car.fuels.length === 1));
+    const tx         = pick(car.txs);
+    const color      = pick(COLORS);
+    const city       = pick(CITIES);
+    const seller     = pick(SELLER_NAMES);
+    const phone      = `+998 ${pick(["90","91","93","94","95","97","98","99"])} ${rnd(100,999)} ${rnd(10,99)} ${rnd(10,99)}`;
     const isVerified = maybe(0.2);
-    const status    = maybe(0.05) ? "pending" : "active";
-    const views     = rnd(0, 800);
+    const status     = maybe(0.04) ? "pending" : "active";
+    const views      = rnd(10, 1200);
 
-    const descFn = pick(DESC_TEMPLATES_RU);
-    const description = descFn(car.brand, car.model, year);
+    const description = pick(DESC_TEMPLATES)(car.brand, car.model, year);
 
-    // Some listings get a price drop (simulate price history)
     let priceHistory = "[]";
-    if (maybe(0.15) && condition === "used") {
-      const oldPrice = Math.round(price * (1 + rnd(5, 20) / 100) / 1_000_000) * 1_000_000;
-      const histEntry = { price: oldPrice, date: new Date(Date.now() - rnd(30, 120) * 86400000).toISOString() };
-      priceHistory = JSON.stringify([histEntry]);
+    if (maybe(0.18) && condition === "used") {
+      const oldPrice = Math.round(price * (1 + rnd(5, 22) / 100) / 1_000_000) * 1_000_000;
+      priceHistory = JSON.stringify([{
+        price: oldPrice,
+        date: new Date(Date.now() - rnd(30, 150) * 86400000).toISOString(),
+      }]);
     }
 
     batch.push({
@@ -280,7 +333,7 @@ async function main() {
       mileage:      mileageRounded,
       city,
       description,
-      images:       carImages(car.brand, car.model, created),
+      images:       carImages(car.brand, created),
       fuelType:     fuel,
       transmission: tx,
       color,
@@ -299,14 +352,51 @@ async function main() {
     created++;
   }
 
-  // Insert in chunks of 100
+  console.log("Inserting listings...");
+  const createdListings: { id: number; isVerified: boolean }[] = [];
   for (let i = 0; i < batch.length; i += 100) {
     const chunk = batch.slice(i, i + 100);
-    await Promise.all(chunk.map((data) => prisma.listing.create({ data })));
+    const results = await Promise.all(chunk.map((data) => prisma.listing.create({ data, select: { id: true, isVerified: true } })));
+    createdListings.push(...results);
     process.stdout.write(`\r  inserted ${Math.min(i + 100, batch.length)}/${TARGET}`);
   }
+  console.log("");
 
-  console.log(`\nDone! Created ${TARGET} listings.`);
+  // ── 4. Inspection reports for verified listings ───────────────────────────
+  const verifiedIds = createdListings.filter((l) => l.isVerified).map((l) => l.id);
+  console.log(`Creating inspection reports for ${verifiedIds.length} verified listings...`);
+
+  for (const listingId of verifiedIds) {
+    const car = CARS[Math.floor(Math.random() * CARS.length)];
+    await prisma.inspectionReport.create({
+      data: {
+        listingId,
+        engine:          randInspectionScore(),
+        transmission:    randInspectionScore(),
+        suspension:      randInspectionScore(),
+        brakes:          randInspectionScore(),
+        electrical:      randInspectionScore(),
+        interior:        randInspectionScore(),
+        tires:           randInspectionScore(),
+        bodyPanels:      JSON.stringify({
+          front:  pick(["ok","ok","ok","scratch"]),
+          rear:   pick(["ok","ok","ok","scratch"]),
+          left:   pick(["ok","ok","ok","dent"]),
+          right:  pick(["ok","ok","ok","dent"]),
+          roof:   "ok",
+          hood:   pick(["ok","ok","ok","repainted"]),
+          trunk:  "ok",
+        }),
+        hasAccident:     maybe(0.12),
+        mileageVerified: maybe(0.9),
+        inspectorName:   pick(INSPECTOR_NAMES),
+        inspectorNotes:  inspectorNotes(car.brand, car.model),
+        inspectedAt:     new Date(Date.now() - rnd(1, 60) * 86400000),
+      },
+    });
+  }
+
+  console.log(`\nDone! Created ${TARGET} listings + ${verifiedIds.length} inspection reports.`);
 }
 
 main().catch(console.error).finally(() => prisma.$disconnect());
