@@ -19,7 +19,11 @@
     "yearFrom": "Год от",
     "yearTo": "Год до",
     "priceFrom": "Цена от",
-    "priceTo": "Цена до"
+    "priceTo": "Цена до",
+    "advancedSearch": "Расширенный поиск",
+    "hideAdvanced": "Свернуть",
+    "mileageTo": "Пробег до",
+    "onlyVerified": "Только проверенные"
   },
   "home": {
     "featuredListings": "Свежие объявления",

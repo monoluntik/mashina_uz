@@ -105,6 +105,16 @@ export const TRANSMISSIONS = ["Mexanik", "Avtomat", "Robot", "Variator"];
 
 export const DRIVE_TYPES = ["Old", "Orqa", "4x4"];
 
+export const MILEAGE_STEPS = [
+  { value: "10000",  ru: "до 10 000 км",  uz: "10 000 kmgacha" },
+  { value: "30000",  ru: "до 30 000 км",  uz: "30 000 kmgacha" },
+  { value: "50000",  ru: "до 50 000 км",  uz: "50 000 kmgacha" },
+  { value: "100000", ru: "до 100 000 км", uz: "100 000 kmgacha" },
+  { value: "150000", ru: "до 150 000 км", uz: "150 000 kmgacha" },
+  { value: "200000", ru: "до 200 000 км", uz: "200 000 kmgacha" },
+  { value: "300000", ru: "до 300 000 км", uz: "300 000 kmgacha" },
+];
+
 export const COLORS = [
   "Oq",
   "Qora",

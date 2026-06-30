@@ -19,7 +19,11 @@
     "yearFrom": "Yildan",
     "yearTo": "Yilgacha",
     "priceFrom": "Narxdan",
-    "priceTo": "Narxgacha"
+    "priceTo": "Narxgacha",
+    "advancedSearch": "Kengaytirilgan qidiruv",
+    "hideAdvanced": "Yopish",
+    "mileageTo": "Yurish gacha",
+    "onlyVerified": "Faqat tekshirilganlar"
   },
   "home": {
     "featuredListings": "Yangi e'lonlar",
